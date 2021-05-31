@@ -1,0 +1,199 @@
+# ИМЕНА И ФАМИЛИИ
+###
+
+# Пытается по введенному запросу угадать Имя/Фамилию/Отчество или всё вместе
+# Возвращает массив объектов с предложениями типа
+#    {
+#      "value": "Пономарев", Само предложение
+#      "unrestricted_value": "Пономарев",
+#      "data": {
+#        "surname": "Пономарев", Фамилия
+#        "name": null, Имя
+#        "patronymic": null, Отчество
+#        "gender": "MALE", Пол
+#        "source": null, Источник
+#        "qc": "0" 0 — все части ФИО известны / 1 — в ФИО есть неизвестная часть
+#      }
+#    }
+POST https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/fio
+Accept: application/json
+Authorization: Token 5826aa6cc3ba16b31f70342e57668a656890f8c6
+Content-Type: application/json
+
+{
+  "query": "Понома"
+}
+
+###
+
+###
+
+# Так же исправляет раскладку, если требуется и аналогично предлагает варианты, исправляет опечатки
+POST https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/fio
+Accept: application/json
+Authorization: Token 5826aa6cc3ba16b31f70342e57668a656890f8c6
+Content-Type: application/json
+
+{
+  "query": "Cntgfy"
+}
+
+###
+
+###
+
+# Возвращает имя, фамилию, отчество отдельно + склоняет по падежам, а так же пол и исправление опечаток
+#  {
+#    "source": "пономарев степан алексевич", Как пришло
+#    "result": "Пономарев Степан Алексеевич", Что вернул АПИ
+#    "result_genitive": "Пономарева Степана Алексеевича", Р.П.
+#    "result_dative": "Пономареву Степану Алексеевичу", Д.П.
+#    "result_ablative": "Пономаревым Степаном Алексеевичем", Т.П.
+#    "surname": "Пономарев", Фамилия
+#    "name": "Степан", Имя
+#    "patronymic": "Алексеевич", Отчество
+#    "gender": "М", Пол
+#    "qc": 1 Распознано с допущениями (видимо не нравится моя фамилия, т.е. АПИ не уверен)
+# qc 0 - Верно, qc 2 - пришёл "мусор"
+#  }
+POST https://cleaner.dadata.ru/api/v1/clean/name
+Authorization: Token 5826aa6cc3ba16b31f70342e57668a656890f8c6
+X-Secret: 0f248ba83bbff91cf3ead9b29c2528eefe67412e
+Content-Type: application/json
+
+[
+  "пономарев степан алексевич"
+]
+
+###
+
+#НОМЕР ТЕЛЕФОНА
+
+###
+
+# Разворачивает номер телефона в удобный вид, проверяет телефон а так же определяет страну, регион, город и часовой пояс
+#  {
+#    "source": "раб 8 (996) 339-81-54", Исходный телефон (к примеру, скопированный откуда-то)
+#    "type": "Мобильный", Тип - Мобильный/Стационарный/Колл-центр и подобное
+#    "phone": "+7 996 339-81-54", Сам телефон в удобнов виде
+#    "country_code": "7", Код страны
+#    "city_code": "996", Код города
+#    "number": "3398154", Сам номер
+#    "extension": null, Добавочный номер (если есть)
+#    "provider": "ООО \"Скартел\"", Провайдер
+#    "country": "Россия", Страна
+#    "region": "Республика Тыва", Регион
+#    "city": null, Город (если определило; только для стационарных телефонов)
+#    "timezone": "UTC+7", Часовой поезд
+#    "qc_conflict": 0, Конфликт с адресом: если адреса города и телефона отличаются
+#    "qc": 0 Посмотреть самому. 0 - Россифский номер и распознан уверенно
+#  }
+POST https://cleaner.dadata.ru/api/v1/clean/phone
+Authorization: Token 5826aa6cc3ba16b31f70342e57668a656890f8c6
+X-Secret: 0f248ba83bbff91cf3ead9b29c2528eefe67412e
+Content-Type: application/json
+
+[
+  "раб 8 (996) 339-81-54"
+]
+
+###
+
+# Проверяет вводимые паспортные данные. Проверяет их актуальность и правильность формата
+#  {
+#    "source": "1234-123456", Источник
+#    "series": null, (был бы 12 34) серия паспорта
+#    "number": null, (был бы 123456) - номер паспорта
+#    "qc": 1 Код, что формат неверный, потому что серия/номер не действительная
+# 0	Действующий паспорт
+# 2	Исходное значение пустое
+# 1	Неправильный формат серии или номера
+# 10 Недействительный паспорт
+#  }
+POST https://cleaner.dadata.ru/api/v1/clean/passport
+Authorization: Token 5826aa6cc3ba16b31f70342e57668a656890f8c6
+X-Secret: 0f248ba83bbff91cf3ead9b29c2528eefe67412e
+Content-Type: application/json
+
+[
+  "1234-123456"
+]
+
+###
+###
+
+POST https://cleaner.dadata.ru/api/v1/clean/passport
+Authorization: Token 5826aa6cc3ba16b31f70342e57668a656890f8c6
+X-Secret: 0f248ba83bbff91cf3ead9b29c2528eefe67412e
+Content-Type: application/json
+
+[
+  "4509235857"
+]
+
+###
+# Проверка доступности эл. почты
+#  {
+#    "source": "stepan@ponomarev.pp.ru", Источник
+#    "email": "stepan@ponomarev.pp.ru", почта (если бы была опечатка, исправил бы)
+#    "local": "stepan",
+#    "domain": "ponomarev.pp.ru", Домен
+#    "type": "CORPORATE", Тип почты
+#    "qc": 0
+#  }
+POST https://cleaner.dadata.ru/api/v1/clean/email
+Authorization: Token 5826aa6cc3ba16b31f70342e57668a656890f8c6
+X-Secret: 0f248ba83bbff91cf3ead9b29c2528eefe67412e
+Content-Type: application/json
+
+[
+  "stepan@ponomarev.pp.ru"
+]
+
+###
+
+###
+
+POST https://cleaner.dadata.ru/api/v1/clean/email
+Authorization: Token 5826aa6cc3ba16b31f70342e57668a656890f8c6
+X-Secret: 0f248ba83bbff91cf3ead9b29c2528eefe67412e
+Content-Type: application/json
+
+[
+  "swdbgrfocmatwmfqdc@kiabws.com"
+]
+
+###
+# Просто предлагает окончания почты из самых распространенных
+POST https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/email
+Accept: application/json
+Authorization: Token 5826aa6cc3ba16b31f70342e57668a656890f8c6
+Content-Type: application/json
+
+{
+  "query": "stepan@"
+}
+
+###
+
+# ДАЛЕЕ РАБОТА С АДРЕСАМИ
+
+###
+
+POST https://cleaner.dadata.ru/api/v1/clean/address
+Authorization: Token 5826aa6cc3ba16b31f70342e57668a656890f8c6
+X-Secret: 0f248ba83bbff91cf3ead9b29c2528eefe67412e
+Content-Type: application/json
+
+[
+  "казань кремлевская 35"
+]
+
+###
+#Попытка вычислить по IP
+
+GET https://suggestions.dadata.ru/suggestions/api/4_1/rs/iplocate/address?ip=178.207.176.145
+Accept: application/json
+Authorization: Token 5826aa6cc3ba16b31f70342e57668a656890f8c6
+
+###
